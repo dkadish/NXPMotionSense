@@ -104,6 +104,11 @@ private:
 	bool FXOS8700_read(int16_t *data);
 	bool FXAS21002_read(int16_t *data);
 	bool MPL3115_read(int32_t *altitude, int16_t *temperature);
+
+	bool write_reg(uint8_t i2c, uint8_t addr, uint8_t val);
+	bool read_regs(uint8_t i2c, uint8_t addr, uint8_t *data, uint8_t num);
+	bool read_regs(uint8_t i2c, uint8_t *data, uint8_t num);
+
 	float cal[16]; // 0-8=offsets, 9=field strength, 10-15=soft iron map
 	int16_t accel_mag_raw[6];
 	int16_t gyro_raw[3];

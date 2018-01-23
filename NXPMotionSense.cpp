@@ -82,8 +82,7 @@ void NXPMotionSense::update()
 	}
 }
 
-
-static bool write_reg(uint8_t i2c, uint8_t addr, uint8_t val)
+bool NXPMotionSense::write_reg(uint8_t i2c, uint8_t addr, uint8_t val)
 {
 	_wire->beginTransmission(i2c);
 	_wire->write(addr);
@@ -91,7 +90,7 @@ static bool write_reg(uint8_t i2c, uint8_t addr, uint8_t val)
 	return _wire->endTransmission() == 0;
 }
 
-static bool read_regs(uint8_t i2c, uint8_t addr, uint8_t *data, uint8_t num)
+bool NXPMotionSense::read_regs(uint8_t i2c, uint8_t addr, uint8_t *data, uint8_t num)
 {
 	_wire->beginTransmission(i2c);
 	_wire->write(addr);
@@ -105,7 +104,7 @@ static bool read_regs(uint8_t i2c, uint8_t addr, uint8_t *data, uint8_t num)
 	return true;
 }
 
-static bool read_regs(uint8_t i2c, uint8_t *data, uint8_t num)
+bool NXPMotionSense::read_regs(uint8_t i2c, uint8_t *data, uint8_t num)
 {
 	_wire->requestFrom(i2c, num);
 	if (_wire->available() != num) return false;
