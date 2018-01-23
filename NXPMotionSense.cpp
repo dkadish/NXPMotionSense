@@ -6,14 +6,28 @@
 #define NXP_MOTION_CAL_EEADDR  60
 #define NXP_MOTION_CAL_SIZE    68
 
+NXPMotionSense::NXPMotionSense()
+{
+	//Set initial values for private vars
+	_wire = &Wire;
+}
+
+#if defined(__arm__) && defined(CORE_TEENSY)
+NXPMotionSense::NXPMotionSense(i2c_t3 * wire)
+{
+	//Set initial values for private vars
+	_wire = wire;
+}
+#endif
+
 bool NXPMotionSense::begin()
 {
 	unsigned char buf[NXP_MOTION_CAL_SIZE];
 	uint8_t i;
 	uint16_t crc;
 
-	Wire.begin();
-	Wire.setClock(400000);
+	_wire->begin();
+	_wire->setClock(400000);
 
 	memset(accel_mag_raw, 0, sizeof(accel_mag_raw));
 	memset(gyro_raw, 0, sizeof(gyro_raw));
@@ -71,21 +85,21 @@ void NXPMotionSense::update()
 
 static bool write_reg(uint8_t i2c, uint8_t addr, uint8_t val)
 {
-	Wire.beginTransmission(i2c);
-	Wire.write(addr);
-	Wire.write(val);
-	return Wire.endTransmission() == 0;
+	_wire->beginTransmission(i2c);
+	_wire->write(addr);
+	_wire->write(val);
+	return _wire->endTransmission() == 0;
 }
 
 static bool read_regs(uint8_t i2c, uint8_t addr, uint8_t *data, uint8_t num)
 {
-	Wire.beginTransmission(i2c);
-	Wire.write(addr);
-	if (Wire.endTransmission(false) != 0) return false;
-	Wire.requestFrom(i2c, num);
-	if (Wire.available() != num) return false;
+	_wire->beginTransmission(i2c);
+	_wire->write(addr);
+	if (_wire->endTransmission(false) != 0) return false;
+	_wire->requestFrom(i2c, num);
+	if (_wire->available() != num) return false;
 	while (num > 0) {
-		*data++ = Wire.read();
+		*data++ = _wire->read();
 		num--;
 	}
 	return true;
@@ -93,10 +107,10 @@ static bool read_regs(uint8_t i2c, uint8_t addr, uint8_t *data, uint8_t num)
 
 static bool read_regs(uint8_t i2c, uint8_t *data, uint8_t num)
 {
-	Wire.requestFrom(i2c, num);
-	if (Wire.available() != num) return false;
+	_wire->requestFrom(i2c, num);
+	if (_wire->available() != num) return false;
 	while (num > 0) {
-		*data++ = Wire.read();
+		*data++ = _wire->read();
 		num--;
 	}
 	return true;

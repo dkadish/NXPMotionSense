@@ -2,7 +2,11 @@
 #define _NXP_Motion_Sensors_
 
 #include <Arduino.h>
-#include <Wire.h>
+#if defined(__arm__) && defined(CORE_TEENSY)
+	#include <i2c_3.h>
+#else
+	#include <Wire.h>
+#endif
 #include <EEPROM.h>
 
 // TODO: move these inside class namespace
@@ -12,6 +16,11 @@
 
 class NXPMotionSense {
 public:
+	NXPMotionSense();
+
+#if defined(__arm__) && defined(CORE_TEENSY)
+	NXPMotionSense(i2c_t3 * wire);
+#endif
 	bool begin();
 	bool available() {
 		update();
@@ -172,6 +181,13 @@ private:
         float QwbplusQvG;               // FQWB + FQVG
         int8_t FirstOrientationLock;    // denotes that 9DOF orientation has locked to 6DOF
         int8_t resetflag;               // flag to request re-initialization on next pass
+
+	// Declaring Wire/i2c_t3 variables to allow for different Wire(s)
+	#if defined(__arm__) && defined(CORE_TEENSY)
+		i2c_t3 * _wire;
+	#else
+		TwoWire * _wire;
+	#endif
 };
 
 
