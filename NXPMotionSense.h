@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #if defined(__arm__) && defined(CORE_TEENSY)
-	#include <i2c_3.h>
+	#include <i2c_t3.h>
 #else
 	#include <Wire.h>
 #endif
