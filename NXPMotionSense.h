@@ -21,6 +21,7 @@ public:
 #if defined(__arm__) && defined(CORE_TEENSY)
 	NXPMotionSense(i2c_t3 * wire);
 #endif
+
 	bool begin();
 	bool available() {
 		update();
@@ -108,6 +109,13 @@ private:
 	int16_t gyro_raw[3];
 	int16_t temperature_raw;
 	uint8_t newdata;
+
+	// Declaring Wire/i2c_t3 variables to allow for different Wire(s)
+	#if defined(__arm__) && defined(CORE_TEENSY)
+			i2c_t3 * _wire;
+	#else
+		TwoWire * _wire;
+	#endif
 };
 
 
@@ -182,12 +190,6 @@ private:
         int8_t FirstOrientationLock;    // denotes that 9DOF orientation has locked to 6DOF
         int8_t resetflag;               // flag to request re-initialization on next pass
 
-	// Declaring Wire/i2c_t3 variables to allow for different Wire(s)
-	#if defined(__arm__) && defined(CORE_TEENSY)
-		i2c_t3 * _wire;
-	#else
-		TwoWire * _wire;
-	#endif
 };
 
 
