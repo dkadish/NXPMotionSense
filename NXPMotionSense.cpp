@@ -26,8 +26,8 @@ bool NXPMotionSense::begin()
 	uint8_t i;
 	uint16_t crc;
 
-	_wire->begin();
-	_wire->setClock(400000);
+	//_wire->begin();
+	//_wire->setClock(400000);
 
 	memset(accel_mag_raw, 0, sizeof(accel_mag_raw));
 	memset(gyro_raw, 0, sizeof(gyro_raw));
@@ -92,10 +92,13 @@ bool NXPMotionSense::write_reg(uint8_t i2c, uint8_t addr, uint8_t val)
 
 bool NXPMotionSense::read_regs(uint8_t i2c, uint8_t addr, uint8_t *data, uint8_t num)
 {
+	Serial.println("Begin Transmish");
 	_wire->beginTransmission(i2c);
 	_wire->write(addr);
+	Serial.println("Ending Transmish");
 	if (_wire->endTransmission(false) != 0) return false;
 	_wire->requestFrom(i2c, num);
+	Serial.println("Checking available");
 	if (_wire->available() != num) return false;
 	while (num > 0) {
 		*data++ = _wire->read();
@@ -120,10 +123,10 @@ bool NXPMotionSense::FXOS8700_begin()
 	const uint8_t i2c_addr=FXOS8700_I2C_ADDR0;
 	uint8_t b;
 
-	//Serial.println("FXOS8700_begin");
+	Serial.println("FXOS8700_begin");
 	// detect if chip is present
 	if (!read_regs(i2c_addr, FXOS8700_WHO_AM_I, &b, 1)) return false;
-	//Serial.printf("FXOS8700 ID = %02X\n", b);
+	Serial.printf("FXOS8700 ID = %02X\n", b);
 	if (b != 0xC7) return false;
 	// place into standby mode
 	if (!write_reg(i2c_addr, FXOS8700_CTRL_REG1, 0)) return false;
@@ -134,7 +137,7 @@ bool NXPMotionSense::FXOS8700_begin()
 	if (!write_reg(i2c_addr, FXOS8700_XYZ_DATA_CFG, 0x01)) return false; // 4G range
 	if (!write_reg(i2c_addr, FXOS8700_CTRL_REG2, 0x02)) return false; // hires
 	if (!write_reg(i2c_addr, FXOS8700_CTRL_REG1, 0x15)) return false; // 100Hz A+M
-	//Serial.println("FXOS8700 Configured");
+	Serial.println("FXOS8700 Configured");
 	return true;
 }
 
