@@ -7,9 +7,12 @@
  * USE_ADAFRUIT_IMU
  * USE_ALTIMETER
  */
+#define USE_I2C_T3
+#define USE_ADAFRUIT_IMU
+#define NO_ALTIMETER
 
 #include <Arduino.h>
-#if defined(__arm__) && defined(CORE_TEENSY)
+#if defined(USE_I2C_T3)
 	#include <i2c_t3.h>
 #else
 	#include <Wire.h>
@@ -25,7 +28,7 @@ class NXPMotionSense {
 public:
 	NXPMotionSense();
 
-#if defined(__arm__) && defined(CORE_TEENSY)
+#if defined(USE_I2C_T3)
 	NXPMotionSense(i2c_t3 * wire);
 #endif
 
@@ -123,7 +126,7 @@ private:
 	uint8_t newdata;
 
 	// Declaring Wire/i2c_t3 variables to allow for different Wire(s)
-	#if defined(__arm__) && defined(CORE_TEENSY)
+	#if defined(USE_I2C_T3)
 			i2c_t3 * _wire;
 	#else
 		TwoWire * _wire;

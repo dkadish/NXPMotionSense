@@ -12,7 +12,7 @@ NXPMotionSense::NXPMotionSense()
 	_wire = &Wire;
 }
 
-#if defined(__arm__) && defined(CORE_TEENSY)
+#if defined(USE_I2C_T3)
 NXPMotionSense::NXPMotionSense(i2c_t3 * wire)
 {
 	//Set initial values for private vars
@@ -41,10 +41,12 @@ bool NXPMotionSense::begin()
 		Serial.println("config error FXAS21002");
 		delay(1000);
 	}
+#if !defined(NO_ALTIMETER)
 	while (!MPL3115_begin()) {
 		Serial.println("config error MPL3115");
 		delay(1000);
 	}
+#endif
 	//Serial.println("init done");
 
 	for (i=0; i < NXP_MOTION_CAL_SIZE; i++) {
@@ -73,9 +75,11 @@ void NXPMotionSense::update()
 	if (FXOS8700_read(accel_mag_raw)) { // accel + mag
 		//Serial.println("accel+mag");
 	}
+#if !defined(NO_ALTIMETER)
 	if (MPL3115_read(&alt, &temperature_raw)) { // alt
 		//Serial.println("alt");
 	}
+#endif
 	if (FXAS21002_read(gyro_raw)) {  // gyro
 		//Serial.println("gyro");
 		newdata = 1;
@@ -124,7 +128,7 @@ bool NXPMotionSense::read_regs(uint8_t i2c, uint8_t *data, uint8_t num)
 
 bool NXPMotionSense::FXOS8700_begin()
 {
-    #if defined(__arm__) && defined(CORE_TEENSY)
+    #if defined(USE_ADAFRUIT_IMU)
     const uint8_t i2c_addr=FXOS8700_I2C_ADDR3;
     #else
     const uint8_t i2c_addr=FXOS8700_I2C_ADDR0;
@@ -153,7 +157,7 @@ bool NXPMotionSense::FXOS8700_read(int16_t *data)  // accel + mag
 {
 	static elapsedMicros usec_since;
 	static int32_t usec_history=5000;
-#if defined(__arm__) && defined(CORE_TEENSY)
+#if defined(USE_ADAFRUIT_IMU)
     const uint8_t i2c_addr=FXOS8700_I2C_ADDR3;
 #else
     const uint8_t i2c_addr=FXOS8700_I2C_ADDR0;
@@ -187,7 +191,7 @@ bool NXPMotionSense::FXOS8700_read(int16_t *data)  // accel + mag
 bool NXPMotionSense::FXAS21002_begin()
 {
 
-    #if defined(__arm__) && defined(CORE_TEENSY)
+    #if defined(USE_ADAFRUIT_IMU)
         const uint8_t i2c_addr=FXAS21002_I2C_ADDR1;
     #else
         const uint8_t i2c_addr=FXAS21002_I2C_ADDR0;
@@ -212,7 +216,7 @@ bool NXPMotionSense::FXAS21002_read(int16_t *data) // gyro
 {
 	static elapsedMicros usec_since;
 	static int32_t usec_history=10000;
-#if defined(__arm__) && defined(CORE_TEENSY)
+#if defined(USE_ADAFRUIT_IMU)
     const uint8_t i2c_addr=FXAS21002_I2C_ADDR1;
 #else
     const uint8_t i2c_addr=FXAS21002_I2C_ADDR0;
