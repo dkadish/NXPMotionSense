@@ -9,7 +9,7 @@
  */
 #define USE_I2C_T3
 #define USE_ADAFRUIT_IMU
-#define NO_ALTIMETER
+//define NO_ALTIMETER
 
 #include <Arduino.h>
 #if defined(USE_I2C_T3)
@@ -30,6 +30,7 @@ public:
 
 #if defined(USE_I2C_T3)
 	NXPMotionSense(i2c_t3 * wire);
+    NXPMotionSense(i2c_t3 * wire, i2c_t3 * altWire);
 #endif
 
 	bool begin();
@@ -114,11 +115,6 @@ private:
 	bool FXOS8700_read(int16_t *data);
 	bool FXAS21002_read(int16_t *data);
 	bool MPL3115_read(int32_t *altitude, int16_t *temperature);
-
-	bool write_reg(uint8_t i2c, uint8_t addr, uint8_t val);
-	bool read_regs(uint8_t i2c, uint8_t addr, uint8_t *data, uint8_t num);
-	bool read_regs(uint8_t i2c, uint8_t *data, uint8_t num);
-
 	float cal[16]; // 0-8=offsets, 9=field strength, 10-15=soft iron map
 	int16_t accel_mag_raw[6];
 	int16_t gyro_raw[3];
@@ -127,9 +123,11 @@ private:
 
 	// Declaring Wire/i2c_t3 variables to allow for different Wire(s)
 	#if defined(USE_I2C_T3)
-			i2c_t3 * _wire;
+        i2c_t3 * _wire;
+        i2c_t3 * _altWire;
 	#else
 		TwoWire * _wire;
+        TwoWire * _altWire;
 	#endif
 };
 
