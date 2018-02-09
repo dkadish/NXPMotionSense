@@ -1,6 +1,13 @@
 #ifndef _NXP_Motion_Sensors_
 #define _NXP_Motion_Sensors_
 
+/***********************************************************************************************************************
+ * Defines that need to be created:
+ * USE_I2C_T3
+ * USE_ADAFRUIT_IMU
+ * USE_ALTIMETER
+ */
+
 #include <Arduino.h>
 #if defined(__arm__) && defined(CORE_TEENSY)
 	#include <i2c_t3.h>
