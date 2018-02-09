@@ -92,13 +92,17 @@ bool NXPMotionSense::write_reg(uint8_t i2c, uint8_t addr, uint8_t val)
 
 bool NXPMotionSense::read_regs(uint8_t i2c, uint8_t addr, uint8_t *data, uint8_t num)
 {
-	Serial.println("Begin Transmish");
+    Serial.printf("Begin Transmish %#02x\n", i2c);
 	_wire->beginTransmission(i2c);
 	_wire->write(addr);
-	Serial.println("Ending Transmish");
-	if (_wire->endTransmission(false) != 0) return false;
+    Serial.println("Ending Transmish");
+    int endTransm = _wire->endTransmission(false);
+	if (endTransm != 0) {
+		Serial.printf("Transmission impossible %i\n", endTransm);
+        return false;
+    }
 	_wire->requestFrom(i2c, num);
-	Serial.println("Checking available");
+    Serial.printf("Checking available %i\n", _wire->available());
 	if (_wire->available() != num) return false;
 	while (num > 0) {
 		*data++ = _wire->read();
@@ -120,13 +124,17 @@ bool NXPMotionSense::read_regs(uint8_t i2c, uint8_t *data, uint8_t num)
 
 bool NXPMotionSense::FXOS8700_begin()
 {
-	const uint8_t i2c_addr=FXOS8700_I2C_ADDR0;
+    #if defined(__arm__) && defined(CORE_TEENSY)
+    const uint8_t i2c_addr=FXOS8700_I2C_ADDR3;
+    #else
+    const uint8_t i2c_addr=FXOS8700_I2C_ADDR0;
+    #endif
 	uint8_t b;
 
-	Serial.println("FXOS8700_begin");
+	//Serial.println("FXOS8700_begin");
 	// detect if chip is present
 	if (!read_regs(i2c_addr, FXOS8700_WHO_AM_I, &b, 1)) return false;
-	Serial.printf("FXOS8700 ID = %02X\n", b);
+    //Serial.printf("FXOS8700 ID = %02X\n", b);
 	if (b != 0xC7) return false;
 	// place into standby mode
 	if (!write_reg(i2c_addr, FXOS8700_CTRL_REG1, 0)) return false;
@@ -137,7 +145,7 @@ bool NXPMotionSense::FXOS8700_begin()
 	if (!write_reg(i2c_addr, FXOS8700_XYZ_DATA_CFG, 0x01)) return false; // 4G range
 	if (!write_reg(i2c_addr, FXOS8700_CTRL_REG2, 0x02)) return false; // hires
 	if (!write_reg(i2c_addr, FXOS8700_CTRL_REG1, 0x15)) return false; // 100Hz A+M
-	Serial.println("FXOS8700 Configured");
+    //Serial.println("FXOS8700 Configured");
 	return true;
 }
 
@@ -145,8 +153,12 @@ bool NXPMotionSense::FXOS8700_read(int16_t *data)  // accel + mag
 {
 	static elapsedMicros usec_since;
 	static int32_t usec_history=5000;
-	const uint8_t i2c_addr=FXOS8700_I2C_ADDR0;
-	uint8_t buf[13];
+#if defined(__arm__) && defined(CORE_TEENSY)
+    const uint8_t i2c_addr=FXOS8700_I2C_ADDR3;
+#else
+    const uint8_t i2c_addr=FXOS8700_I2C_ADDR0;
+#endif
+    uint8_t buf[13];
 
 	int32_t usec = usec_since;
 	if (usec + 100 < usec_history) return false;
@@ -174,7 +186,12 @@ bool NXPMotionSense::FXOS8700_read(int16_t *data)  // accel + mag
 
 bool NXPMotionSense::FXAS21002_begin()
 {
+
+    #if defined(__arm__) && defined(CORE_TEENSY)
+        const uint8_t i2c_addr=FXAS21002_I2C_ADDR1;
+    #else
         const uint8_t i2c_addr=FXAS21002_I2C_ADDR0;
+    #endif
         uint8_t b;
 
 	if (!read_regs(i2c_addr, FXAS21002_WHO_AM_I, &b, 1)) return false;
@@ -195,7 +212,11 @@ bool NXPMotionSense::FXAS21002_read(int16_t *data) // gyro
 {
 	static elapsedMicros usec_since;
 	static int32_t usec_history=10000;
-	const uint8_t i2c_addr=FXAS21002_I2C_ADDR0;
+#if defined(__arm__) && defined(CORE_TEENSY)
+    const uint8_t i2c_addr=FXAS21002_I2C_ADDR1;
+#else
+    const uint8_t i2c_addr=FXAS21002_I2C_ADDR0;
+#endif
 	uint8_t buf[7];
 
 	int32_t usec = usec_since;
@@ -222,11 +243,13 @@ bool NXPMotionSense::FXAS21002_read(int16_t *data) // gyro
 
 bool NXPMotionSense::MPL3115_begin() // pressure
 {
-        const uint8_t i2c_addr=MPL3115_I2C_ADDR;
-        uint8_t b;
+    const uint8_t i2c_addr=MPL3115_I2C_ADDR;
+    uint8_t b;
 
+    Serial.print("MPLing\n");
 	if (!read_regs(i2c_addr, MPL3115_WHO_AM_I, &b, 1)) return false;
-	//Serial.printf("MPL3115 ID = %02X\n", b);
+    Serial.print("MPLing2\n");
+	Serial.printf("MPL3115 ID = %02X\n", b);
 	if (b != 0xC4) return false;
 
 	// place into standby mode
