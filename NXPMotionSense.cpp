@@ -76,12 +76,11 @@ bool NXPMotionSense::begin()
 void NXPMotionSense::update()
 {
 	static elapsedMillis msec;
-	int32_t alt;
 
 	if (FXOS8700_read(accel_mag_raw)) { // accel + mag
 	}
 #if !defined(NO_ALTIMETER)
-	if (MPL3115_read(&alt, &temperature_raw)) { // alt
+	if (MPL3115_read(&altitude_raw, &temperature_raw)) { // alt
 	}
 #endif
 	if (FXAS21002_read(gyro_raw)) {  // gyro

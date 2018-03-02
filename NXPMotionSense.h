@@ -39,6 +39,11 @@ public:
 		if (newdata) return true;
 		return false;
 	}
+    void readMotionSensor(int& alt) {
+        if (!newdata) update();
+        newdata = 0;
+        alt = altitude_raw;
+    }
 	void readMotionSensor(int& ax, int& ay, int& az, int& gx, int& gy, int& gz) {
 		if (!newdata) update();
 		newdata = 0;
@@ -88,6 +93,23 @@ public:
 		my = x * cal[13] + y * cal[11] + z * cal[15];
 		mz = x * cal[14] + y * cal[15] + z * cal[12];
 	}
+	void readMotionSensor(float& ax, float& ay, float& az, float& gx, float& gy, float& gz, float& mx, float& my, float& mz, float& alt) {
+		if (!newdata) update();
+		newdata = 0;
+		ax = (float)accel_mag_raw[0] * G_PER_COUNT - cal[0];
+		ay = (float)accel_mag_raw[1] * G_PER_COUNT - cal[1];
+		az = (float)accel_mag_raw[2] * G_PER_COUNT - cal[2];
+		gx = (float)gyro_raw[0] * DEG_PER_SEC_PER_COUNT - cal[3];
+		gy = (float)gyro_raw[1] * DEG_PER_SEC_PER_COUNT - cal[4];
+		gz = (float)gyro_raw[2] * DEG_PER_SEC_PER_COUNT - cal[5];
+		float x = (float)accel_mag_raw[3] * UT_PER_COUNT - cal[6];
+		float y = (float)accel_mag_raw[4] * UT_PER_COUNT - cal[7];
+		float z = (float)accel_mag_raw[5] * UT_PER_COUNT - cal[8];
+		mx = x * cal[10] + y * cal[13] + z * cal[14];
+		my = x * cal[13] + y * cal[11] + z * cal[15];
+		mz = x * cal[14] + y * cal[15] + z * cal[12];
+		alt = (float)altitude_raw;
+	}
 
 	bool writeCalibration(const void *data);
 	void getCalibration(float *offsets, float *softiron=NULL, float *fieldstrength=NULL) {
@@ -119,6 +141,7 @@ private:
 	int16_t accel_mag_raw[6];
 	int16_t gyro_raw[3];
 	int16_t temperature_raw;
+    int32_t altitude_raw;
 	uint8_t newdata;
 
 	// Declaring Wire/i2c_t3 variables to allow for different Wire(s)
