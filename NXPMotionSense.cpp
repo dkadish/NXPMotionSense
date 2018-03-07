@@ -1,4 +1,5 @@
 #include "NXPMotionSense.h"
+#include "config.h"
 #include "utility/NXPSensorRegisters.h"
 #include <util/crc16.h>
 #include <elapsedMillis.h>
@@ -14,13 +15,13 @@ NXPMotionSense::NXPMotionSense()
 }
 
 #if defined(USE_I2C_T3)
-NXPMotionSense::NXPMotionSense(i2c_t3 * wire)
+NXPMotionSense::NXPMotionSense(wire_t * wire)
 {
 	//Set initial values for private vars
 	_wire = wire;
     _altWire = wire;
 }
-NXPMotionSense::NXPMotionSense(i2c_t3 * wire, i2c_t3 * altWire)
+NXPMotionSense::NXPMotionSense(wire_t * wire, wire_t * altWire)
 {
     //Set initial values for private vars
     _wire = wire;
@@ -88,7 +89,7 @@ void NXPMotionSense::update()
 	}
 }
 
-static bool write_reg(i2c_t3 * wire, uint8_t i2c, uint8_t addr, uint8_t val)
+static bool write_reg(wire_t * wire, uint8_t i2c, uint8_t addr, uint8_t val)
 {
     wire->beginTransmission(i2c);
     wire->write(addr);
@@ -96,7 +97,7 @@ static bool write_reg(i2c_t3 * wire, uint8_t i2c, uint8_t addr, uint8_t val)
     return wire->endTransmission() == 0;
 }
 
-static bool read_regs(i2c_t3 * wire, uint8_t i2c, uint8_t addr, uint8_t *data, uint8_t num)
+static bool read_regs(wire_t * wire, uint8_t i2c, uint8_t addr, uint8_t *data, uint8_t num)
 {
     wire->beginTransmission(i2c);
     wire->write(addr);
@@ -110,7 +111,7 @@ static bool read_regs(i2c_t3 * wire, uint8_t i2c, uint8_t addr, uint8_t *data, u
     return true;
 }
 
-static bool read_regs(i2c_t3 * wire, uint8_t i2c, uint8_t *data, uint8_t num)
+static bool read_regs(wire_t * wire, uint8_t i2c, uint8_t *data, uint8_t num)
 {
     wire->requestFrom(i2c, num);
     if (wire->available() != num) return false;
@@ -234,6 +235,10 @@ bool NXPMotionSense::FXAS21002_read(int16_t *data) // gyro
 	return true;
 }
 
+/*TODO It is inclear that this code is actually doing anything.
+ * radiohound simply imported SFs libraries into his fork.
+ * Might be the way to go.
+ */
 bool NXPMotionSense::MPL3115_begin() // pressure
 {
     const uint8_t i2c_addr=MPL3115_I2C_ADDR;
@@ -243,12 +248,12 @@ bool NXPMotionSense::MPL3115_begin() // pressure
 	if (b != 0xC4) return false;
 
 	// place into standby mode
-	if (!write_reg(_altWire, i2c_addr, MPL3115_CTRL_REG1, 0)) return false;
+	//if (!write_reg(_altWire, i2c_addr, MPL3115_CTRL_REG1, 0)) return false;
 
 	// switch to active, altimeter mode, 512 ms measurement, polling mode
 	if (!write_reg(_altWire, i2c_addr, MPL3115_CTRL_REG1, 0xB9)) return false;
 	// enable events
-	if (!write_reg(_altWire, i2c_addr, MPL3115_PT_DATA_CFG, 0x07)) return false;
+	//if (!write_reg(_altWire, i2c_addr, MPL3115_PT_DATA_CFG, 0x07)) return false;
 
 	return true;
 }
@@ -263,10 +268,10 @@ bool NXPMotionSense::MPL3115_read(int32_t *altitude, int16_t *temperature)
 	int32_t usec = usec_since;
 	if (usec + 500 < usec_history) return false;
 
-	if (!read_regs(_altWire, i2c_addr, FXAS21002_STATUS, buf, 1)) return false;
+	if (!read_regs(_altWire, i2c_addr, MPL3115_STATUS, buf, 1)) return false;
 	if (buf[0] == 0) return false;
 
-	if (!read_regs(_altWire, i2c_addr, buf, 6)) return false;
+	if (!read_regs(_altWire, i2c_addr, MPL3115_STATUS, buf, 6)) return false;
 
 	usec_since -= usec;
 	int diff = (usec - usec_history) >> 3;
@@ -274,9 +279,19 @@ bool NXPMotionSense::MPL3115_read(int32_t *altitude, int16_t *temperature)
 	else if (diff > 1000) diff = 1000;
 	usec_history += diff;
 
-	int32_t a = ((uint32_t)buf[1] << 12) | ((uint16_t)buf[2] << 4) | (buf[3] >> 4);
+	/*int32_t a = ((uint32_t)buf[1] << 12) | ((uint16_t)buf[2] << 4) | (buf[3] >> 4);
 	if (a & 0x00080000) a |= 0xFFF00000;
 	*altitude = a;
+	 * */
+
+	// The least significant bytes l_altitude and l_temp are 4-bit,
+	// fractional values, so you must cast the calulation in (float),
+	// shift the value over 4 spots to the right and divide by 16 (since
+	// there are 16 values in 4-bits).
+	float tempcsb = (buf[3]>>4)/16.0;
+	float a = (float)( (buf[1] << 8) | buf[2]) + tempcsb;
+
+	*altitude = (int)(a*1000);
 	*temperature = (int16_t)((buf[4] << 8) | buf[5]);
 
 	return true;

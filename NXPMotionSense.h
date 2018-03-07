@@ -7,16 +7,12 @@
  * USE_ADAFRUIT_IMU
  * USE_ALTIMETER
  */
-#define USE_I2C_T3
+
 #define USE_ADAFRUIT_IMU
 //define NO_ALTIMETER
+#include "config.h"
 
 #include <Arduino.h>
-#if defined(USE_I2C_T3)
-	#include <i2c_t3.h>
-#else
-	#include <Wire.h>
-#endif
 #include <EEPROM.h>
 
 // TODO: move these inside class namespace
@@ -27,11 +23,6 @@
 class NXPMotionSense {
 public:
 	NXPMotionSense();
-
-#if defined(USE_I2C_T3)
-	NXPMotionSense(i2c_t3 * wire);
-    NXPMotionSense(i2c_t3 * wire, i2c_t3 * altWire);
-#endif
 
 	bool begin();
 	bool available() {
@@ -111,6 +102,11 @@ public:
 		alt = (float)altitude_raw;
 	}
 
+    void readAltitudeAndTemperature(float& altitude, float& temperature){
+        altitude = (float) altitude_raw;
+        temperature = (float) temperature_raw;
+    }
+
 	bool writeCalibration(const void *data);
 	void getCalibration(float *offsets, float *softiron=NULL, float *fieldstrength=NULL) {
 		if (offsets != NULL) {
@@ -145,13 +141,16 @@ private:
 	uint8_t newdata;
 
 	// Declaring Wire/i2c_t3 variables to allow for different Wire(s)
-	#if defined(USE_I2C_T3)
+    wire_t * _wire;
+    wire_t * _altWire;
+
+    /*#if defined(USE_I2C_T3)
         i2c_t3 * _wire;
         i2c_t3 * _altWire;
 	#else
 		TwoWire * _wire;
         TwoWire * _altWire;
-	#endif
+	#endif*/
 };
 
 
