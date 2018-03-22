@@ -10,7 +10,7 @@
 
 #define USE_ADAFRUIT_IMU
 //define NO_ALTIMETER
-#include "config.h"
+#include "nxp_config.h"
 
 #include <Arduino.h>
 #include <EEPROM.h>
@@ -23,6 +23,8 @@
 class NXPMotionSense {
 public:
 	NXPMotionSense();
+	NXPMotionSense(wire_t * wire);
+	NXPMotionSense(wire_t * wire, wire_t * altWire);
 
 	bool begin();
 	bool available() {
@@ -30,7 +32,7 @@ public:
 		if (newdata) return true;
 		return false;
 	}
-    void readMotionSensor(int& alt) {
+    void readMotionSensor(long& alt) {
         if (!newdata) update();
         newdata = 0;
         alt = altitude_raw;

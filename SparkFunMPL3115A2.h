@@ -12,7 +12,7 @@
 #ifndef _SPARKFUN_MPL3115A2_H_ 
 #define _SPARKFUN_MPL3115A2_H_ 
 
-#include "config.h"
+#include "nxp_config.h"
 
 #if defined(ARDUINO) && ARDUINO >= 100
  #include "Arduino.h"
@@ -82,9 +82,7 @@ class MPL3115A2 {
 public:
   MPL3115A2();
 
-#if defined(USE_I2C_T3)
-    MPL3115A2(i2c_t3 * wire);
-#endif
+  MPL3115A2(i2c_t3 * wire);
 
   //Public Functions
   void begin(); // Gets sensor on the I2C bus.

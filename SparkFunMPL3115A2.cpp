@@ -38,13 +38,11 @@ MPL3115A2::MPL3115A2()
   //Set initial values for private vars
 	_wire = &Wire;
 }
-#if defined(USE_I2C_T3)
-NXPMotionSense::NXPMotionSense(wire_t * wire)
+MPL3115A2::MPL3115A2(wire_t * wire)
 {
 	//Set initial values for private vars
 	_wire = wire;
 }
-#endif
 
 //Begin
 /*******************************************************************************************/

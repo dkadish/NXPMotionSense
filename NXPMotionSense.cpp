@@ -1,5 +1,5 @@
 #include "NXPMotionSense.h"
-#include "config.h"
+#include "nxp_config.h"
 #include "utility/NXPSensorRegisters.h"
 #include <util/crc16.h>
 #include <elapsedMillis.h>
@@ -14,7 +14,6 @@ NXPMotionSense::NXPMotionSense()
     _altWire = &Wire;
 }
 
-#if defined(USE_I2C_T3)
 NXPMotionSense::NXPMotionSense(wire_t * wire)
 {
 	//Set initial values for private vars
@@ -27,7 +26,6 @@ NXPMotionSense::NXPMotionSense(wire_t * wire, wire_t * altWire)
     _wire = wire;
     _altWire = altWire;
 }
-#endif
 
 bool NXPMotionSense::begin()
 {
